@@ -1,0 +1,115 @@
+export ir_type = table
+
+ir_type.is_pointer = false
+ir_type.none = "zeroinitializer"
+ir_type["_str"] = func(self)
+  panic("Uhg")
+
+
+export label_type = table :: ir_type
+
+label_type["_str"] = func(self)
+  return "label"
+
+
+export ptr_type = table :: ir_type
+
+ptr_type.is_pointer = true
+ptr_type.none = "null"
+
+ptr_type.new = func(self, pointee)
+  let ret = table :: self
+  save ret
+  ret.pointee = pointee
+
+ptr_type["_str"] = func(self)
+  return tostr(self.pointee) $ "*"
+
+
+export void_type = table :: ir_type
+
+void_type["_str"] = func(self)
+  return "void"
+
+
+export func_type = table :: ir_type
+
+func_type.new = func(self, ret_type, args)
+  let ret = table :: self
+  save ret
+  ret.ret = ret_type
+  ret.args = args
+
+func_type["_str"] = func(self)
+  let args = ""
+  for val in self.args:values()
+    args = args $ tostr(val) $ ", "
+
+  return tostr(self.ret) $ "(" $ args $ ")"
+
+
+export int_type = table :: ir_type
+
+int_type.none = "0"
+
+int_type.new = func(self, bits)
+  let ret = table :: self
+  save ret
+  ret.bits = bits
+
+int_type["_str"] = func(self)
+  return "i" $ tostr(self.bits)
+
+
+export float_type = table :: ir_type
+
+float_type.none = "0.0"
+
+float_type["_str"] = func(self)
+  return "float"
+
+
+export double_type = table :: ir_type
+
+double_type.none = "0.0"
+
+double_type["_str"] = func(self)
+  return "double"
+
+
+export array_type = table :: ir_type
+
+array_type.new = func(self, element, count)
+  let ret = table :: self
+  save ret
+  ret.element = element
+  ret.count = count
+
+array_type["_str"] = func(self)
+  return "[" $ tostr(self.count) $ " x " $ tostr(self.element) $ "]"
+
+
+export lit_struct_type = table :: ir_type
+
+lit_struct_type.new = func(self, elements)
+  let ret = table :: self
+  save ret
+  ret.elements = elements
+
+lit_struct_type["_str"] = func(self)
+  let elements = ""
+  for val in self.elements:values()
+    elements = elements $ tostr(val) $ ", "
+
+  return "{" $ elements $ "}"
+
+let main = func()
+  print(void_type)
+  print(int_type:new(16))
+  print(int_type:new(32))
+  print(float_type)
+  print(double_type)
+  print(array_type:new(float_type, 32))
+  print(lit_struct_type:new([int_type:new(32), int_type:new(64), int_type:new(64)]))
+  print(ptr_type:new(float_type))
+  print(func_type:new(ptr_type:new(void_type), [int_type:new(32), float_type, double_type]))
